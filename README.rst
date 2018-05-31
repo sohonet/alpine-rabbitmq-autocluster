@@ -2,15 +2,16 @@ alpine-rabbitmq-autocluster
 ===========================
 Small RabbitMQ image (~42MB) with the autocluster plugin
 
-RabbitMQ Version: 3.6.2
-Autocluster Version: 0.6.1
+RabbitMQ Version: 3.6.15
+Autocluster Version: 0.10.0
 
 |Stars| |Pulls|
 
 Enabled plugins
 ---------------
 
-- Autocluster
+- Autocluster 
+- AWS
 - Consistent Hash Exchange
 - Delayed Message Exchange
 - Federation
@@ -18,14 +19,10 @@ Enabled plugins
 - Management
 - Management Visualiser
 - Message Timestamp
-- MQTT
 - Recent History Exchange
 - Sharding
-- Shovel
-- Shovel Management
-- Stomp
 - Top
-- WebStomp
+- Web Dispatch
 
 Configuration
 -------------
@@ -41,16 +38,24 @@ AWS EC2 Autoscaling group:
 
 .. code-block:: bash
 
-    docker run --name rabbitmq -d \
-      -e AUTOCLUSTER_TYPE=aws \
-      -e AUTOCLUSTER_CLEANUP=true \
-      -e CLEANUP_WARN_ONLY=false \
-      -e AWS_DEFAULT_REGION=us-east-1 \
-      -p 4369:4369 \
-      -p 5672:5672 \
-      -p 15672:15672 \
-      -p 25672:25672 \
-      gavinmroy/alpine-rabbitmq-autocluster
+   docker run -d \
+    --name rabbitmq \
+    --net=host \
+    --dns-search=eu-west-1.compute.internal \
+    --ulimit nofile=65536:65536 \
+    --restart='always' \
+    -p 1883:1883 \
+    -p 4369:4369 \
+    -p 5671:5671 \
+    -p 5672:5672 \
+    -p 15672:15672 \
+    -p 25672:25672 \
+    -e AUTOCLUSTER_TYPE=aws \
+    -e AWS_AUTOSCALING=true \
+    -e AUTOCLUSTER_CLEANUP=true \
+    -e CLEANUP_WARN_ONLY=false \
+    -e AWS_DEFAULT_REGION=us-west-1 \
+    sohonet/alpine-rabbitmq-autocluster:3.6.15
 
 To use the AWS autocluster features, you will need an IAM policy that allows the
 plugin to discover the node list. The following is an example of such a policy:
@@ -97,12 +102,12 @@ in the Launch Configuration:
       - docker-engine
     runcmd:
       - export AWS_DEFAULT_REGION=`ec2metadata --availability-zone | sed s'/.$//'`
-      - docker run -d --name rabbitmq --net=host -p 4369:4369 -p 5672:5672 -p 15672:15672 -p 25672:25672 -e AUTOCLUSTER_TYPE=aws -e AWS_AUTOSCALING=true -e AUTOCLUSTER_CLEANUP=true -e CLEANUP_WARN_ONLY=false -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION gavinmroy/alpine-rabbitmq-autocluster:3.6.2-0.6.0
+      - docker run -d --name rabbitmq --net=host -p 4369:4369 -p 5672:5672 -p 15672:15672 -p 25672:25672 -e AUTOCLUSTER_TYPE=aws -e AWS_AUTOSCALING=true -e AUTOCLUSTER_CLEANUP=true -e CLEANUP_WARN_ONLY=false -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION sohonet/alpine-rabbitmq-autocluster:3.6.2-0.6.0
 
 
-.. |Stars| image:: https://img.shields.io/docker/stars/gavinmroy/alpine-rabbitmq-autocluster.svg?style=flat&1
-   :target: https://hub.docker.com/r/gavinmroy/alpine-rabbitmq-autocluster/
+.. |Stars| image:: https://img.shields.io/docker/stars/sohonet/alpine-rabbitmq-autocluster.svg?style=flat&1
+   :target: https://hub.docker.com/r/sohonet/alpine-rabbitmq-autocluster/
 
-.. |Pulls| image:: https://img.shields.io/docker/pulls/gavinmroy/alpine-rabbitmq-autocluster.svg?style=flat&1
-   :target: https://hub.docker.com/r/gavinmroy/alpine-rabbitmq-autocluster/
+.. |Pulls| image:: https://img.shields.io/docker/pulls/sohonet/alpine-rabbitmq-autocluster.svg?style=flat&1
+   :target: https://hub.docker.com/r/sohonet/alpine-rabbitmq-autocluster/
  (~42MB)
