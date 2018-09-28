@@ -1,0 +1,3 @@
+[submodule "shn-anchore-engine"]
+	path = shn-anchore-engine
+	url = git@github.com:sohonet/shn-anchore-engine.git

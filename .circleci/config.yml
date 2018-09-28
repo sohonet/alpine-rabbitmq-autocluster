@@ -1,0 +1,58 @@
+version: 2
+
+jobs:
+  scan_docker_image:
+    machine: true
+    working_directory: /tmp/workspace/anchore
+    environment:
+      ANCHORE_CLI_PASS: admin
+      ANCHORE_CLI_USER: admin
+      ANCHORE_CLI_URL: http://localhost:8228/v1
+      ANCHORE_RETRIES: 30
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - '6a:b5:ac:cf:f3:dc:38:14:2f:a6:b2:f0:83:fb:73:77'
+      - run:
+          name: Setup anchore-engine
+          command: |
+            git submodule update --init \
+            && cd anchore \
+            && docker-compose up -d \
+            && sleep 30s
+      - run:
+          name: Install anchore-cli
+          command: pip install anchorecli
+      - run:
+          name: Add anchore ECR registry
+          command: |
+            anchore-cli system status \
+            && anchore/bin/add_registry.sh \
+            && anchore-cli registry list
+      - run:
+          name: Scan ECR Image
+          command: |
+            anchore/bin/scan_image.sh
+      - run:
+          name: Report Packages
+          command: |
+              anchore-cli --json image content ${DOCKER_ENDPOINT}/sohonet/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1} os
+      - run:
+          name: Report Vulnerabilities
+          command: |
+              anchore-cli --json image vuln ${DOCKER_ENDPOINT}/sohonet/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1} os \
+              && anchore-cli --json evaluate check ${DOCKER_ENDPOINT}/sohonet/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1}
+
+workflows:
+  version: 2
+  testing:
+    triggers:
+      - schedule:
+        cron: "13 17 * * *"
+        filters:
+          branches:
+            only:
+              - DEVOPS-297-DEVOPS-312
+    jobs:
+      - scan_docker_image
