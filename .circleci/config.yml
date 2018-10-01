@@ -49,10 +49,10 @@ workflows:
   testing:
     triggers:
       - schedule:
-        cron: "13 17 * * *"
-        filters:
-          branches:
-            only:
-              - DEVOPS-297-DEVOPS-312
+          cron: "37 08 * * *"
+          filters:
+            branches:
+              only:
+                - DEVOPS-297-DEVOPS-312
     jobs:
       - scan_docker_image
