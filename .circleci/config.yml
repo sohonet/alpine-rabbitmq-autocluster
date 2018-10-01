@@ -13,7 +13,7 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints:
-            - '60:ff:e5:c2:cb:6d:f0:f9:44:5c:27:a0:93:ca:fc:08'
+            - '6a:b5:ac:cf:f3:dc:38:14:2f:a6:b2:f0:83:fb:73:77'
       - run:
           name: Setup anchore-engine
           command: |
@@ -49,7 +49,7 @@ workflows:
   testing:
     triggers:
       - schedule:
-          cron: "42 09 * * *"
+          cron: "17 11 * * *"
           filters:
             branches:
               only:
