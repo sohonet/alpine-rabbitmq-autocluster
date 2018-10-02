@@ -43,7 +43,7 @@ workflows:
   testing:
     triggers:
       - schedule:
-          cron: "25 11 * * *"
+          cron: "33 11 * * *"
           filters:
             branches:
               only:
