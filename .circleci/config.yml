@@ -25,25 +25,27 @@ jobs:
           name: Install anchore-cli
           command: pip install anchorecli
       - run:
-          name: Scan ECR Image
+          name: Scan Docker Image
           command: |
             anchore/bin/scan_dockerhub_image.sh
       - run:
           name: Report Packages
           command: |
-              anchore-cli --json image content ${DOCKER_ENDPOINT}/sohonet/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1} os
+              if [ -z "$DOCKERTAG"]; then DOCKERTAG=latest; fi
+              anchore-cli --json image content sohonet/${CIRCLE_PROJECT_REPONAME}:${DOCKERTAG} os
       - run:
           name: Report Vulnerabilities
           command: |
-              anchore-cli --json image vuln ${DOCKER_ENDPOINT}/sohonet/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1} os \
-              && anchore-cli --json evaluate check ${DOCKER_ENDPOINT}/sohonet/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1}
+              if [ -z "$DOCKERTAG"]; then DOCKERTAG=latest; fi
+              anchore-cli --json image vuln sohonet/${CIRCLE_PROJECT_REPONAME}:${DOCKERTAG} os \
+              && anchore-cli --json evaluate check sohonet/${CIRCLE_PROJECT_REPONAME}:${DOCKERTAG}
 
 workflows:
   version: 2
   testing:
     triggers:
       - schedule:
-          cron: "57 13 * * *"
+          cron: "08 14 * * *"
           filters:
             branches:
               only:
