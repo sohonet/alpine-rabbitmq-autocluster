@@ -27,7 +27,7 @@ jobs:
       - run:
           name: Scan ECR Image
           command: |
-            anchore/bin/scan_image.sh
+            anchore/bin/scan_dockerhub_image.sh
       - run:
           name: Report Packages
           command: |
@@ -43,7 +43,7 @@ workflows:
   testing:
     triggers:
       - schedule:
-          cron: "39 11 * * *"
+          cron: "35 13 * * *"
           filters:
             branches:
               only:
