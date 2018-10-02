@@ -25,12 +25,6 @@ jobs:
           name: Install anchore-cli
           command: pip install anchorecli
       - run:
-          name: Add anchore ECR registry
-          command: |
-            anchore-cli system status \
-            && anchore/bin/add_registry.sh \
-            && anchore-cli registry list
-      - run:
           name: Scan ECR Image
           command: |
             anchore/bin/scan_image.sh
@@ -49,7 +43,7 @@ workflows:
   testing:
     triggers:
       - schedule:
-          cron: "21 11 * * *"
+          cron: "18 11 * * *"
           filters:
             branches:
               only:

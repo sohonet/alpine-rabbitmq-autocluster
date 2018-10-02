@@ -1,3 +1,4 @@
 [submodule "shn-anchore-engine"]
 	path = anchore
 	url = git@github.com:sohonet/shn-anchore-engine.git
+	branch = DEVOPS-297-DEVOPS-312
