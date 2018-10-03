@@ -53,14 +53,13 @@ jobs:
 
 workflows:
   version: 2
-  testing:
+  scan_rabbitmq_image:
     triggers:
       - schedule:
-          cron: "47 13 * * *"
+          cron: "5 21 * * 0"
           filters:
             branches:
               only:
                 - master
-                - DEVOPS-297-DEVOPS-312
     jobs:
       - scan_docker_image
