@@ -1,0 +1,65 @@
+version: 2
+
+jobs:
+  scan_docker_image:
+    machine: true
+    working_directory: /tmp/workspace/anchore
+    environment:
+      ANCHORE_CLI_PASS: admin
+      ANCHORE_CLI_USER: admin
+      ANCHORE_CLI_URL: http://localhost:8228/v1
+      ANCHORE_RETRIES: 30
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - '6a:b5:ac:cf:f3:dc:38:14:2f:a6:b2:f0:83:fb:73:77'
+      - run:
+          name: Setup anchore-engine
+          command: |
+            git submodule update --init \
+            && cd anchore \
+            && docker-compose up -d \
+            && sleep 30s
+      - run:
+          name: Install anchore-cli
+          command: pip install anchorecli
+      - run:
+          name: Scan Docker Image
+          command: |
+            anchore/bin/scan_dockerhub_image.sh
+      - run:
+          name: Report Packages
+          command: |
+              if [ -z "$DOCKERTAG"]; then DOCKERTAG=latest; fi
+              anchore-cli --json image content sohonet/${CIRCLE_PROJECT_REPONAME}:${DOCKERTAG} os
+      - run:
+          name: Report Vulnerabilities
+          command: |
+              if [ -z "$DOCKERTAG"]; then DOCKERTAG=latest; fi
+              anchore-cli --json image vuln sohonet/${CIRCLE_PROJECT_REPONAME}:${DOCKERTAG} os \
+              && anchore-cli --json evaluate check sohonet/${CIRCLE_PROJECT_REPONAME}:${DOCKERTAG}
+
+      - run:
+         name: Build new docker image when anchore reports severe vulnerabilities
+         command: |
+          if [ -z "$DOCKERTAG"]; then DOCKERTAG=latest; fi
+          echo $DOCKERHUB_PASSWORD | docker login -u sohonetci --password-stdin
+          docker build --no-cache \
+          -t "sohonet/${CIRCLE_PROJECT_REPONAME}:${DOCKERTAG}"
+          docker push sohonet/${CIRCLE_PROJECT_REPONAME}:${DOCKERTAG}
+         when: on_fail
+
+
+workflows:
+  version: 2
+  scan_rabbitmq_image:
+    triggers:
+      - schedule:
+          cron: "5 21 * * 0"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - scan_docker_image
