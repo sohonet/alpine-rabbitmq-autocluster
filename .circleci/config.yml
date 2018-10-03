@@ -40,15 +40,27 @@ jobs:
               anchore-cli --json image vuln sohonet/${CIRCLE_PROJECT_REPONAME}:${DOCKERTAG} os \
               && anchore-cli --json evaluate check sohonet/${CIRCLE_PROJECT_REPONAME}:${DOCKERTAG}
 
+      - run:
+         name: Build new docker image when anchore reports severe vulnerabilities
+         command: |
+          if [ -z "$DOCKERTAG"]; then DOCKERTAG=latest; fi
+          echo $DOCKERHUB_PASSWORD | docker login -u sohonetci --password-stdin
+          docker build --no-cache \
+          -t "sohonet/${CIRCLE_PROJECT_REPONAME}:${DOCKERTAG}"
+          docker push sohonet/${CIRCLE_PROJECT_REPONAME}:${DOCKERTAG}
+         when: on_fail
+
+
 workflows:
   version: 2
   testing:
     triggers:
       - schedule:
-          cron: "39 13 * * *"
+          cron: "47 13 * * *"
           filters:
             branches:
               only:
+                - master
                 - DEVOPS-297-DEVOPS-312
     jobs:
       - scan_docker_image
